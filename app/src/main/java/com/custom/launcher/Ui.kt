@@ -78,12 +78,12 @@ fun NavPill(icon: ImageVector, label: String, onClick: () -> Unit) {
 @Composable
 fun ClockDial() {
     val now by produceState(LocalDateTime.now()) { while (true) { value = LocalDateTime.now(); delay(1000) } }
-    Box(Modifier.size(250.dp).neu(125.dp), Alignment.Center) {
-        Canvas(Modifier.size(236.dp)) {
+    Box(Modifier.size(270.dp).neu(135.dp), Alignment.Center) {
+        Canvas(Modifier.size(254.dp)) {
             drawArc(Accent, -90f, 360f * now.second / 60f, false, style = Stroke(5f, cap = StrokeCap.Round),
                 topLeft = Offset.Zero, size = Size(size.width, size.height))
         }
-        Box(Modifier.size(200.dp).clip(CircleShape).background(Ink), Alignment.Center) {
+        Box(Modifier.size(216.dp).clip(CircleShape).background(Ink), Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(now.format(DateTimeFormatter.ofPattern("EEEE")), color = Color(0xFFB8C4DC), fontFamily = FontFamily.Cursive, fontSize = 16.sp)
                 Text(now.format(DateTimeFormatter.ofPattern("hh")), color = Accent, fontSize = 58.sp, fontWeight = FontWeight.Bold)

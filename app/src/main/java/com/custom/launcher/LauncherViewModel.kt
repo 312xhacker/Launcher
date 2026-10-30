@@ -23,6 +23,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 
 class LauncherViewModel(private val app: Application) : AndroidViewModel(app) {
     private val pm: PackageManager = app.packageManager
+    val music = MusicController(app)
     val apps = MutableStateFlow<List<AppInfo>>(emptyList())
     val dock = MutableStateFlow<List<AppInfo>>(emptyList())
     val packs = MutableStateFlow<List<IconPack>>(emptyList())
@@ -51,7 +52,7 @@ class LauncherViewModel(private val app: Application) : AndroidViewModel(app) {
         }
     }
 
-    override fun onCleared() { app.unregisterReceiver(receiver) }
+    override fun onCleared() { app.unregisterReceiver(receiver); music.release() }
 
     fun refresh() = viewModelScope.launch(Dispatchers.IO) {
         val q = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)

@@ -15,6 +15,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import kotlinx.coroutines.delay
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -65,6 +68,8 @@ fun HomeScreen(vm: LauncherViewModel, onDrawer: () -> Unit, onSettings: () -> Un
             Spacer(Modifier.weight(1f))
             ClockDial()
         }
+        MusicCard(vm)
+        Spacer(Modifier.height(14.dp))
         // Dock
         Row(Modifier.fillMaxWidth().neu(34.dp).padding(14.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             dock.forEach { AppIcon(vm, it, 52.dp) { vm.launch(ctx, it) } }
@@ -143,5 +148,46 @@ private fun PackRow(label: String, selected: Boolean, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically) {
         Text(label, Modifier.weight(1f), color = Ink, fontSize = 14.sp)
         if (selected) Icon(Icons.Default.CheckCircle, null, tint = Accent)
+    }
+}
+
+@Composable
+fun MusicCard(vm: LauncherViewModel) {
+    val music = vm.music
+    val t by music.track.collectAsState()
+    val access by music.hasAccess.collectAsState()
+    val progress by produceState(0f, t) {
+        while (true) {
+            val d = t?.duration ?: 0L
+            value = if (d > 0) (music.position().toFloat() / d).coerceIn(0f, 1f) else 0f
+            delay(1000)
+        }
+    }
+    Row(Modifier.fillMaxWidth().neu(34.dp).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+        val tr = t
+        when {
+            !access -> Text("Music card ke liye notification access allow karo (tap)", fontSize = 12.sp, color = Muted,
+                modifier = Modifier.fillMaxWidth().clickable { music.openAccessSettings() }.padding(8.dp))
+            tr == null -> Text("Abhi kuch play nahi ho raha", fontSize = 12.sp, color = Muted, modifier = Modifier.padding(8.dp))
+            else -> {
+                Box(Modifier.size(58.dp).clip(RoundedCornerShape(16.dp)).background(Ink), Alignment.Center) {
+                    if (tr.art != null) Image(tr.art, null, Modifier.fillMaxSize()) else Text("♪", color = Color.White, fontSize = 22.sp)
+                }
+                Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                    Text(tr.title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(tr.artist, fontSize = 11.sp, color = Accent, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(6.dp))
+                    LinearProgressIndicator(progress = { progress }, color = Accent, trackColor = Color(0x22000000),
+                        modifier = Modifier.fillMaxWidth().height(3.dp).clip(CircleShape))
+                }
+                Icon(Icons.Default.KeyboardArrowLeft, "Previous", tint = Ink, modifier = Modifier.size(30.dp).clickable { music.prev() })
+                Box(Modifier.padding(horizontal = 4.dp).size(38.dp).clip(CircleShape).background(Ink).clickable { music.toggle() }, Alignment.Center) {
+                    if (tr.playing) Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Box(Modifier.size(4.dp, 14.dp).background(Color.White)); Box(Modifier.size(4.dp, 14.dp).background(Color.White))
+                    } else Icon(Icons.Default.PlayArrow, "Play", tint = Color.White, modifier = Modifier.size(22.dp))
+                }
+                Icon(Icons.Default.KeyboardArrowRight, "Next", tint = Ink, modifier = Modifier.size(30.dp).clickable { music.next() })
+            }
+        }
     }
 }

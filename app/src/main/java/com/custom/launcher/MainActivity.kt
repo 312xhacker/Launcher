@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -13,13 +14,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 enum class Screen { Home, Drawer, Settings }
 
 class MainActivity : ComponentActivity() {
+    private val vm: LauncherViewModel by viewModels()
     private var goHome: (() -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val vm: LauncherViewModel = viewModel()
             val s by vm.settings.collectAsState()
             var screen by remember { mutableStateOf(Screen.Home) }
             goHome = { screen = Screen.Home }
@@ -34,6 +35,8 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() { super.onResume(); vm.music.connect() }
 
     private fun applyBlur(radius: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
